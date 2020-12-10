@@ -54,6 +54,7 @@ def backward():
 #User Interface + command prompt
 def UI():
     while(1):
+        ui = input()
         while (ui == "w"):
             print("FORWARD")
             forward()
@@ -67,5 +68,4 @@ def UI():
             print("INVALID INPUT... ENTER AGAIN")
             GPIO.cleanup()
             exit()
-
-
+UI()
