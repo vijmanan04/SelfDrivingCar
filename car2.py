@@ -49,15 +49,20 @@ def stop():
 #Forward function
 def forward():
     servo.ChangeDutyCycle(8.7) #change to face forward
+    time.sleep(0.1)
+    servo.ChangeDutyCycle(0)
     GPIO.output(in1, GPIO.LOW)
     GPIO.output(in2, GPIO.HIGH)
     GPIO.output(enA, GPIO.HIGH)
+    servo.ChangeDutyCycle(0)
     time.sleep(ts)
     stop()
 
 #Backward function
 def backward():
-    servo.ChangeDutyCycle(8.7) #change to face forward
+    servo.ChangeDutyCycle(8.7)#change to face forward
+    time.sleep(0.1)
+    servo.ChangeDutyCycle(0)
     GPIO.output(in1, GPIO.HIGH)
     GPIO.output(in2, GPIO.LOW)
     GPIO.output(enA, GPIO.HIGH)
@@ -94,6 +99,6 @@ def system(event):     #event is an in built tkinter object
     if event.char.lower == 'x':
         stop()
 
-ui = tk.Tk() 
+ui = tk.Tk()
 ui.bind('<KeyPress>', system) #binds system function with <KeyPress> (from tkinter)
-ui.mainloop() #Makes the program run forever
+ui.mainloop()
