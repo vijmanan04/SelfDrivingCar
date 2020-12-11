@@ -94,6 +94,6 @@ def system(event):     #event is an in built tkinter object
     if event.char.lower == 'x':
         stop()
 
-ui = tk.Tk()
+ui = tk.Tk() 
 ui.bind('<KeyPress>', system) #binds system function with <KeyPress> (from tkinter)
-ui.mainloop()
+ui.mainloop() #Makes the program run forever
