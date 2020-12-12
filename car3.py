@@ -49,21 +49,15 @@ def stop():
 
 #Forward function
 def forward():
-    servo.ChangeDutyCycle(8.7) #change to face forward
-    time.sleep(0.1)
-    servo.ChangeDutyCycle(0)
     GPIO.output(in1, GPIO.LOW)
     GPIO.output(in2, GPIO.HIGH)
     GPIO.output(enA, GPIO.HIGH)
-    servo.ChangeDutyCycle(0)
     time.sleep(ts)
     stop()
 
+
 #Backward function
 def backward():
-    servo.ChangeDutyCycle(8.7)#change to face forward
-    time.sleep(0.1)
-    servo.ChangeDutyCycle(0)
     GPIO.output(in1, GPIO.HIGH)
     GPIO.output(in2, GPIO.LOW)
     GPIO.output(enA, GPIO.HIGH)
@@ -75,22 +69,17 @@ def backward():
 def right():
     servo.ChangeDutyCycle(2)
     time.sleep(0.5)
-    servo.ChangeDutyCycle(0)
-    pos = ui.index("end") #Gets index of last character entered
-    if pos == 'w':
-        forward()
-    else:
-        backward()
+    servo.ChangeDutyCycle(0)    
 
 def left():
     servo.ChangeDutyCycle(12)
     time.sleep(0.5)
     servo.ChangeDutyCycle(0)
-    pos = ui.index("end")
-    if pos == "w":
-        forward()
-    else:
-        backward()
+   # pos = ui.index("end")
+def fix():
+    servo.ChangeDutyCycle(8.7)
+    time.sleep(0.5)
+    servo.ChangeDutyCycle(0)
 
 
 #class
@@ -103,17 +92,19 @@ class Driver(object):
 
     def system(self, event):     #event is an in built tkinter object
         setup()
-        print ('Key: ', event.char)#event.char is an attribute for event that returns single-character strings
+        print ('Key: ', event.keysym)#event.char is an attribute for event that returns single-character strings
         if event.char.lower() == 'w':
             forward()
         if event.char.lower() == 's':
             backward()
         if event.char.lower() == 'q':
             exit()
-        if event.char.lower() == 'd':
+        if event.keycode == 114:
             right()
-        if event.char.lower() == 'a':
+        if event.keycode == 113:
             left()
+        if event.keycode == 111:
+            fix()
         if event.char.lower == 'x':
             stop()
             
