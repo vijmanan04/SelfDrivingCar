@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 import time
 from time import sleep
 import tkinter as tk
-from debouncer import Debouncer  #I did not write this code. I will link to creator of debouncer class
+from debouncer import Debouncer  #I did not write this code. I borrowed this from github user adamheins. Here is a link to his github debouncer class: https://github.com/adamheins/tk-debouncer/
 
 #Basic convenience
 GPIO.setwarnings(0)
