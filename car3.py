@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 import time
 from time import sleep
 import tkinter as tk
-from debouncer import Debouncer
+from debouncer import Debouncer  #I did not write this code. I will link to creator of debouncer class
 
 #Basic convenience
 GPIO.setwarnings(0)
@@ -32,7 +32,7 @@ control = 17
 GPIO.setup(control, GPIO.OUT)
 servo = GPIO.PWM(control, 50) #initializes servo to send out 50Hz
 
-ts = 0.2 #set timer for sleep function
+ts = 0.5 #set timer for sleep function
 #Set up all pins as output pins for DC Motor
 def setup():
     GPIO.setup(in1, GPIO.OUT)
@@ -76,25 +76,34 @@ def right():
     servo.ChangeDutyCycle(2)
     time.sleep(0.5)
     servo.ChangeDutyCycle(0)
+    pos = ui.index("end") #Gets index of last character entered
+    if pos == 'w':
+        forward()
+    else:
+        backward()
 
 def left():
     servo.ChangeDutyCycle(12)
     time.sleep(0.5)
     servo.ChangeDutyCycle(0)
+    pos = ui.index("end")
+    if pos == "w":
+        forward()
+    else:
+        backward()
 
 
 #class
+class Driver(object):
+    def __init__(self):   #initiating instance of self
+        self.app = tk.Tk() #start tkinter interface
+        self.debouncer = Debouncer(self.system, self.released) #call debouncer function from debouncer.py and feed input and output functions to arguments
+        self.app.bind('<KeyPress>', self.debouncer.pressed) #bind key press to in-built debouncer function
+        self.app.bind('<KeyRelease>', self.debouncer.released) # bind key release to in-built debouncer function
 
-class Driver(self):
-    def __init__(self):
-        self.app = tk.Tk()
-        self.debouncer = Debouncer(self.ui)
-        self.app.bind('<KeyPress>', self.debouncer.pressed)
-        self.app.bind('<KeyRelease>', self.debouncer.released)
-
-    def system(event):     #event is an in built tkinter object
+    def system(self, event):     #event is an in built tkinter object
         setup()
-        print ('Key: ', event.char) #event.char is an attribute for event that returns single-character strings
+        print ('Key: ', event.char)#event.char is an attribute for event that returns single-character strings
         if event.char.lower() == 'w':
             forward()
         if event.char.lower() == 's':
@@ -107,12 +116,16 @@ class Driver(self):
             left()
         if event.char.lower == 'x':
             stop()
+            
+    def released(self, event):
+        print("released")
+
     def start(self):
         self.app.mainloop()
 
-def main():
+def main():        #calls driver function if __main__ condition is met
     app = Driver()
-    app.loop()
+    app.start()
 
 if __name__ == '__main__':
     main()
