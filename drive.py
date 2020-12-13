@@ -20,7 +20,7 @@ enA = 23
 #setup pin numbers for servo motor
 control = 17
 
-#defines get char function #I did not write this code. It was modified from https://www.instructables.com/Controlling-a-Raspberry-Pi-RC-Car-With-a-Keyboard/
+#defines get char function #I did not write this function. It was modified from https://www.instructables.com/Controlling-a-Raspberry-Pi-RC-Car-With-a-Keyboard/
 def getch():
     fd = sys.stdin.fileno() #sys.stdin gets input directly from terminal. fileno returns the file descriptor is present
     old_settings = termios.tcgetattr(fd) #gets file tty attributes 
