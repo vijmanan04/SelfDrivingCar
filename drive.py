@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO
 import time
 from time import sleep
-import getch as g
+import sys, tty, termios
 
 #Basic convenience
 GPIO.setwarnings(0)
@@ -19,6 +19,22 @@ enA = 23
 
 #setup pin numbers for servo motor
 control = 17
+
+#defines get char function #I did not write this code. It was modified from https://www.instructables.com/Controlling-a-Raspberry-Pi-RC-Car-With-a-Keyboard/
+def getch():
+    fd = sys.stdin.fileno() #sys.stdin gets input directly from terminal. fileno returns the file descriptor is present
+    old_settings = termios.tcgetattr(fd) #gets file tty attributes 
+    try:
+        tty.setraw(sys.stdin.fileno()) #changes mode of file descriptor to raw
+        ch = sys.stdin.read(1) #reads character input
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings) #TCSADRAIN makes all changes occur after all the output is transmitted
+    return ch
+
+
+#set up memory list of inputs from user and will save all commands
+mem = []
+
 
 #setup PWM clock, range, Rpi base frequency is 19.2MHz and set output to 50Hz for SG90 servo
 #OutputHz = 19.2 MHz / clock / range
@@ -53,15 +69,15 @@ def forward():
     GPIO.output(enA, GPIO.HIGH)
     servo.ChangeDutyCycle(0)
     time.sleep(ts)
-    stop()
-
+    GPIO.output(enA, GPIO.LOW) #Turns off motor
+    
 #Backward function
 def backward():
     GPIO.output(in1, GPIO.HIGH)
     GPIO.output(in2, GPIO.LOW)
     GPIO.output(enA, GPIO.HIGH)
     time.sleep(ts)
-    stop()
+    GPIO.output(enA, GPIO.LOW) #Turns off motor
 
 
 #servo range is from 2 to 12 percent duty cycle(2 = 0 degrees, 12 = 180 degrees)
@@ -69,31 +85,50 @@ def right():
     servo.ChangeDutyCycle(2)
     time.sleep(0.5)
     servo.ChangeDutyCycle(0)
+    memory()
 
 def left():
     servo.ChangeDutyCycle(12)
     time.sleep(0.5)
     servo.ChangeDutyCycle(0)
+    memory()
+    
 def fix():
-    servo.ChangeDutyCycle(8.7)
+    servo.ChangeDutyCycle(9.4) #sets wheels straight
     time.sleep(0.5)
     servo.ChangeDutyCycle(0)
+    memory()
 
+def memory():
+    if len(mem) > 1:
+        if mem[-2] == "w":
+            forward()
+        if mem[-2] == "s":
+            backward()
 
+#user input
+def main():
+    while 1:
+        comm = getch()
+        mem.append(comm)
+        setup()
+        if comm == "w":
+            forward()
+        if comm == "s":
+            backward()
+        if comm == "d":
+            right()
+        if comm == "a":
+            left()
+        if comm == "p":
+            fix()
+        if comm == "x":
+            stop()
+        if comm == "q":
+            exit()
+        comm = "" #removes previous command
+        
+        
+if __name__ == "__main__": #only runs when this file is called
+    main()
 
-#class
-while 1:
-    comm = g.getch()
-    if comm == "w":
-        forward()
-    if comm == "s":
-        backward()
-    if comm == "d":
-        right()
-    if comm == "a":
-        left()
-    if comm == "p":
-        fix()
-    if comm == "q":
-        exit()
-    comm = "" #listens for next command and removes previous one
