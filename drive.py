@@ -69,7 +69,7 @@ def forward():
     GPIO.output(enA, GPIO.HIGH)
     servo.ChangeDutyCycle(0)
     time.sleep(ts)
-    GPIO.output(enA, GPIO.LOW) #Turns off motor
+    GPIO.output(enA, GPIO.LOW) #Turns off motor. #Try something like an if statement the checks mem to see if current input was a turn. If it was, keep the motors on.
     
 #Backward function
 def backward():
