@@ -37,7 +37,8 @@ def getch():
 #OutputHz = 19.2 MHz / clock / range
 #Defaults: Clock = 1500MHz
 #Use formula to calculate range: 3906.25 HZ
-#For sg90 servo, pulse duration is 1-2 ms --> 1.5 duty cycle givees angle of 90(Half way between 0 and 180)
+#For sg90 servo, pulse duration is 1-2 ms --> 1.5 duty cycle givees angle of 90(Half way between 0 and 180) 
+mem = []
 
 #set up servo control pin. This one must be a global variable of 'servo' because it must be used within multiple functions.
 # GPIO.setup must come before servo initialization to setup correct pin
@@ -61,13 +62,20 @@ def stop():
 
 #Forward function
 def forward():
+    if mem[-2] == "s":
+        stop()
+        time.sleep(0.1)
     GPIO.output(in1, GPIO.LOW)
     GPIO.output(in2, GPIO.HIGH)
     GPIO.output(enA, GPIO.HIGH)
+    
  
 
 #Backward function
 def backward():
+    if mem[-2] == "w":
+        stop()
+        time.sleep(0.1)
     GPIO.output(in1, GPIO.HIGH)
     GPIO.output(in2, GPIO.LOW)
     GPIO.output(enA, GPIO.HIGH)
@@ -93,6 +101,7 @@ def fix():
 def main():
     while 1:
         comm = getch()
+        mem.append(comm)
         setup()
         if comm == "w":
             forward()
@@ -113,4 +122,4 @@ def main():
 
 if __name__ == "__main__": #only runs when this file is called
     main()
-w
+
