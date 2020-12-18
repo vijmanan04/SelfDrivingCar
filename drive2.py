@@ -119,6 +119,7 @@ def main():
         if comm == "x":
             stop()
         if comm == "q":
+            GPIO.cleanup()
             exit()
         comm = "" #removes previous command
 
