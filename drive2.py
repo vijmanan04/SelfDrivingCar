@@ -62,9 +62,10 @@ def stop():
 
 #Forward function
 def forward():
-    if mem[-2] == "s":
-        stop()
-        time.sleep(0.1)
+    if len(mem) > 1:
+        if mem[-2] == "s":  #reduce voltage spike by going back to 0 then switching direction
+            stop()
+            time.sleep(0.1)
     GPIO.output(in1, GPIO.LOW)
     GPIO.output(in2, GPIO.HIGH)
     GPIO.output(enA, GPIO.HIGH)
@@ -73,9 +74,10 @@ def forward():
 
 #Backward function
 def backward():
-    if mem[-2] == "w":
-        stop()
-        time.sleep(0.1)
+    if len(mem) > 1:
+        if mem[-2] == "w":
+            stop()
+            time.sleep(0.1)
     GPIO.output(in1, GPIO.HIGH)
     GPIO.output(in2, GPIO.LOW)
     GPIO.output(enA, GPIO.HIGH)
@@ -101,6 +103,7 @@ def fix():
 def main():
     while 1:
         comm = getch()
+        print(comm)
         mem.append(comm)
         setup()
         if comm == "w":
@@ -122,4 +125,3 @@ def main():
 
 if __name__ == "__main__": #only runs when this file is called
     main()
-
