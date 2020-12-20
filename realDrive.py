@@ -68,7 +68,7 @@ def forward():
             time.sleep(0.1)
     GPIO.output(in1, GPIO.LOW)
     GPIO.output(in2, GPIO.HIGH)
-    GPIO.output(enA, GPIO.HIGH)
+    GPIO.output(enA, GPIO.HIGH) #keep motor to turn while moving. Press x or q to stop
     
  
 
@@ -85,17 +85,17 @@ def backward():
 
 #servo range is from 2 to 12 percent duty cycle(2 = 0 degrees, 12 = 180 degrees)
 def right():
-    servo.ChangeDutyCycle(2)
+    servo.ChangeDutyCycle(8)
     time.sleep(ts)
     servo.ChangeDutyCycle(0)
 
 def left():
-    servo.ChangeDutyCycle(12)
+    servo.ChangeDutyCycle(10.5)
     time.sleep(ts)
     servo.ChangeDutyCycle(0)
 
 def fix():
-    servo.ChangeDutyCycle(9.4) #sets wheels straight
+    servo.ChangeDutyCycle(9.2) #sets wheels straight
     time.sleep(ts)
     servo.ChangeDutyCycle(0)
 
@@ -126,3 +126,5 @@ def main():
 
 if __name__ == "__main__": #only runs when this file is called
     main()
+
+
