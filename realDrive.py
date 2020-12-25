@@ -119,12 +119,13 @@ def main():
         if comm == "x":
             stop()
         if comm == "q":
+            print("Leaving server and shutting down drive.py and client.py")
             GPIO.cleanup()
             exit()
         comm = "" #removes previous command
 
 
-if __name__ == "__main__": #only runs when this file is called
+if __name__ == "__main__": #only runs when this file is called directly, not through client.py
     main()
 
 
