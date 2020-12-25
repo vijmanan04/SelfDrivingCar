@@ -1,0 +1,29 @@
+.controls {
+	border-width: 5 px;
+	border-style: solid;
+	border-color: black;
+	width: 200px;
+	height: 300px;
+	text-align: left;
+	padding-bottom: 50px;
+	padding-left: 20px;
+	float: left;
+	margin-right: 10px;
+}
+
+.feed {
+	width: 1050px;
+	height: 300px;
+	text-align: left;
+	padding-bottom: 50px;
+	padding-left: 20px;
+	float: left;
+	border-width: 5 px;
+	border-style: solid;
+	border-color: black;
+
+}
+
+.clearfix{
+	clear = both;
+}
