@@ -1,7 +1,7 @@
 import socket
 
 host = socket.gethostname()
-port = 5000
+port = xxxx
 	
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((host, port))
