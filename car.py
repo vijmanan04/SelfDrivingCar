@@ -1,14 +1,11 @@
-#in training delete the first image since it takes time to connect
-
-
+#delay in camera has been accounted for
 ######################################################################################################################################################
 #import all libraries needed
-import threading # will be used to accept xbox controls while recording 
 import cv2 # used to capture video
 import RPi.GPIO as GPIO # used to control motors and servo
 import time # used for multiple reasons(motors, servo, camera, etc...)
 from approxeng.input.selectbinder import ControllerResource # import library from approximate engineering for xbox controller sync with RPi
-import vid_to_pic # Another file I made to convert video from car into pictures
+import datetime #for image file number
 ######################################################################################################################################################
 #set up numbering for GPIO Pins
 GPIO.setmode(GPIO.BCM) 
@@ -37,14 +34,10 @@ def setup():  #define setup function for motors and set all pins as output pins
 ######################################################################################################################################################
 # Set up variables that will be used later
 held = "NA"
-start_count = 0
-state = 1
-vid_to_pic_state = 0 # don't run vid_to_pic right away
-not_now = 0
-
+two = 0
 ######################################################################################################################################################
 # define dictionary for control logging 
-control_dict_first ={
+control_dict_ex ={
     "time":0,
     "left": 0,
     "right": 0,
@@ -53,15 +46,16 @@ control_dict_first ={
     "backward":0,
     "stopped" : 1
 }
-df = [control_dict_first] # create a list with the first entry being the starting conditions in dictionary 
+df = [] # create a list with the first entry being the starting conditions in dictionary 
 ######################################################################################################################################################
-
-
+cap = cv2.VideoCapture(0) #set up video object
+ret, frame = cap.read() #read frame
+images_folder = "/home/pi/Desktop/pictures" #set picture directory
 ######################################################################################################################################################
 # main code that handles xbox inputs, motor control, servo control, logging data
 def main():
+    global two
     input_time = -1 # Used with to log data every second(see end of main())
-    global state # define state as a global variable to be used between threads
     try:
         with ControllerResource() as joystick: # When xbox is connected, create a instance of the xbox with alias 'joystick'
             print("Connected")
@@ -78,15 +72,17 @@ def main():
                 servo.ChangeDutyCycle(0) 
                 time.sleep(0.05)  # try to stabalize servo wheel jitter
                 
-                x, y = joystick['l']. # get x and y coordinates from left joystick on xbox
+                x, y = joystick['l'] # get x and y coordinates from left joystick on xbox
                 held = joystick.check_presses() # check for xbox controller presses 
                 x = x * 100. # augment data since x coordinates are very small
                 
                 if held['cross']: # 'cross' = 'a' on xbox, if a pressed, cleanup motors, print the dictionary df with logged data, change state to 0, and exit thread
                     GPIO.cleanup()
+                    df.pop(0)
+                    df.pop(0)
                     print(df)
                     state = 0 # stop running camera
-                    exit()
+                    return df
                 if held['dup']: # 'dup' = d-pad up on xbox, 
                     setup()
                     GPIO.output(in1, GPIO.LOW) #LOW, HIGH, HIGH turns motor forward
@@ -112,7 +108,7 @@ def main():
                     control_dict["stopped"] = 1
                     control_dict["forward"] = 0
                 if x > 10:  # If joystick is right, turn servo right
-                    servo.ChangeDutyCycle(8). #This value causes wheel to turn right
+                    servo.ChangeDutyCycle(8) #This value causes wheel to turn right
                     time.sleep(0.09)
                     servo.ChangeDutyCycle(0)
                     control_dict["right"] = 1 # change dictionary values respectively
@@ -133,7 +129,9 @@ def main():
                     control_dict["left"] = 0
                     control_dict["straight"] = 1
                 held = "" # clear the previous entry from keyboard to not get stuck
-                
+                ret, frame = cap.read()
+                cv2.imshow('img', frame)
+                cv2.waitKey(1)
                 if input_time < time.localtime(time.time()).tm_sec: #ad hoc method to log data every second
                     control_dict["time"] = [time.localtime(time.time()).tm_mon, time.localtime(time.time()).tm_mday, time.localtime(time.time()).tm_year, time.localtime(time.time()).tm_hour, time.localtime(time.time()).tm_min, time.localtime(time.time()).tm_sec] #insert time into data frame
                     df.append(control_dict) # add the control_dict dictionary with user inputs into df list
@@ -141,6 +139,13 @@ def main():
                     input_time = time.localtime(time.time()).tm_sec #change input time to make it current time, which will be less than the time in the next second, causing this if statment to run again
                     if input_time == 59: #If time reaches 59, reset input_time to make it keep running
                         input_time = 0
+                    img_time = datetime.datetime.fromtimestamp(time.time()).strftime('%H-%M-%S')
+                    frameId = cap.get(1)
+                    filename = images_folder + "/image_" + str(int(frameId)) + "_" + str(img_time) + ".jpg"
+                    if two <= 2:
+                        two += 1
+                        continue
+                    cv2.imwrite(filename, frame)
                     
                 
         #Disconnected
@@ -150,27 +155,10 @@ def main():
         print("No joystick found")
         exit()
 ######################################################################################################################################################
-thread = threading.Thread(target = main) # create a thread instance that will target the main function
-thread.daemon = 1
-thread.start() #start thread to accept user input
+
 ######################################################################################################################################################
 
 ######################################################################################################################################################
-if __name__ == "__main__": #if the current program is called directly, run video
-    cap = cv2.VideoCapture(0) # create OpenCV instance of a camera(using RPi camera)
-    frame_width = int(cap.get(3)) # getting dimensions of frames
-    frame_height = int(cap.get(4))
-    size = (frame_width, frame_height)
-    
-    result = cv2.VideoWriter('stream2.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, size) #create an object into which to put data, 30 is fps, VideoWriter_fourcc is a way to compress the file
-    while 1 and state != 0: # keep running while state is not 0
-        sucess, img = cap.read()
-        if sucess == 1:
-            #cv2.imshow('Video Stream', img) --> use this to display data, but I will change this to a video stream over socket
-            result.write(img) # write the video file 
-            cv2.waitKey(1) 
-    if vid_to_pic_state == 0 and not_now == 0: #once previous video is written to result, release it and feed it into vid_to_pic to convrert to pictures
-        cap.release()
-        result.release()
-        vid_to_pic.vid_to_pic('stream2.avi')
+main()
+
 
