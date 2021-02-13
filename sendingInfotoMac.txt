@@ -1,0 +1,4 @@
+1. zip the pictures file on RaspberryPi with !zip -r pictures.zip pictures
+2. Create master.csv by running script on Pi
+3. Email pictures.zip and master.csv
+4. Open pictures.zip and master.csv on GoogleColab (the directory path has already been updated to match the corresponding one on Google Colab)
