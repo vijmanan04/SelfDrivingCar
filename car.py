@@ -11,7 +11,7 @@ import datetime #for image file number
 import driver
 ######################################################################################################################################################
 #set up numbering for GPIO Pins
-GPIO.setmode(GPIO.BCM) 
+GPIO.setmode(GPIO.BCM) #only needed for servo
 #Basic convenience
 GPIO.setwarnings(False)
 
@@ -26,7 +26,7 @@ servo.start(0) # start servo motor
 
 
 ######################################################################################################################################################
-#load driver functions
+#setup pin numbers for DC motor
 drive = driver.Driver()
 ######################################################################################################################################################
 # Set up variables that will be used later
@@ -35,15 +35,17 @@ two = 0
 ######################################################################################################################################################
 # define dictionary for control logging
 lognum = 1
-df = [] # create a list with the first entry being the starting conditions in dictionary 
+df = [] # create a list with the first entry being the starting conditions in dictionary
+collect = 1
 ######################################################################################################################################################
 cap = cv2.VideoCapture(0) #set up video object
 ret, frame = cap.read() #read frame
 images_folder = "/home/pi/Desktop/pictures/" #set picture directory
+colab_filename = "/content/pictures/"
 ######################################################################################################################################################
 # main code that handles xbox inputs, motor control, servo control, logging data
 def main(counter):
-    global two, lognum, df
+    global two, lognum, df, collect
     input_time = -1 # Used with to log data every second(see end of main())
     control_dict = { # dictionary for logging data after initial set up
     "imgfile": "filename",
@@ -116,13 +118,14 @@ def main(counter):
                 if input_time == 65:
                     input_time = -1
 
-                if input_time < time.localtime(time.time()).tm_sec: #ad hoc method to log data every second
+                if input_time < time.localtime(time.time()).tm_sec and collect == 1: #ad hoc method to log data every second
                     control_dict["lognum"] = lognum
                     lognum += 1
                     input_time = time.localtime(time.time()).tm_sec #change input time to make it current time, which will be less than the time in the next second, causing this if statment to run again
                     frameId = cap.get(1)
                     filename = images_folder + "trial_"+ str(counter) + "_image_id:" + str(lognum-2) + ".jpg"
-                    control_dict["imgfile"] = filename
+                    colab_file = colab_filename + "trial_"+ str(counter) + "_image_id:" + str(lognum-2) + ".jpg"
+                    control_dict["imgfile"] = colab_file
                     if two <= 2:
                         two += 1
                         continue
@@ -148,5 +151,5 @@ def main(counter):
 ######################################################################################################################################################
 
 if __name__ == "__main__":
+    collect = 0
     main(1)
-
