@@ -9,6 +9,9 @@ import time # used for multiple reasons(motors, servo, camera, etc...)
 from approxeng.input.selectbinder import ControllerResource # import library from approximate engineering for xbox controller sync with RPi
 import datetime #for image file number
 import driver
+import threading
+from PIL import Image
+import socket, cv2, pickle,struct,imutils
 ######################################################################################################################################################
 #set up numbering for GPIO Pins
 GPIO.setmode(GPIO.BCM) #only needed for servo
@@ -22,7 +25,49 @@ GPIO.setup(control, GPIO.OUT) # setup control pin as a output
 servo = GPIO.PWM(control, 50) # create PWM instance of servo that sends out signals at 50 hertz
 servo.start(0) # start servo motor
 ######################################################################################################################################################
+# Lets import the libraries
 
+# Socket Create
+server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+host_name  = socket.gethostname()
+host_ip = socket.gethostbyname(host_name)
+print('HOST IP:',host_ip)
+port = 8000
+socket_address = ("192.168.1.200",port)
+#server_socket.close()
+# Socket Bind
+server_socket.bind(socket_address)
+
+# Socket Listen
+server_socket.listen(5)
+print("LISTENING AT:",socket_address)
+
+# Socket Accept
+def start(cap, run):
+    if run == 1:
+        client_socket,addr = server_socket.accept()
+        print('GOT CONNECTION FROM:',addr)
+        if client_socket:
+            vid = cap
+                
+            while(vid.isOpened()):
+                img,frame = vid.read()
+                frame = imutils.resize(frame,width=320)
+                a = pickle.dumps(frame)
+                message = struct.pack("Q",len(a))+a
+                client_socket.sendall(message)
+                    
+                # cv2.imshow('TRANSMITTING VIDEO',frame)
+                key = cv2.waitKey(1) & 0xFF
+                if key ==ord('q'):
+                    client_socket.close()
+    else:
+        server_socket.close()
+        client_socket.close()
+
+
+global run
+run = 1
 
 
 ######################################################################################################################################################
@@ -42,10 +87,14 @@ cap = cv2.VideoCapture(0) #set up video object
 ret, frame = cap.read() #read frame
 images_folder = "/home/pi/Desktop/pictures/" #set picture directory
 colab_filename = "/content/pictures/"
+
+t = threading.Thread(target = start, args = (cap, run))
+t.daemon = True
+t.start()
 ######################################################################################################################################################
 # main code that handles xbox inputs, motor control, servo control, logging data
 def main(counter):
-    global two, lognum, df, collect
+    global two, lognum, df, collect, cap
     input_time = -1 # Used with to log data every second(see end of main())
     control_dict = { # dictionary for logging data after initial set up
     "imgfile": "filename",
@@ -74,6 +123,8 @@ def main(counter):
                     df.pop(0)
                     df.pop(0)
                     df = df[:-1]
+                    t.join()
+                    time.sleep(1)
                     return df #returns 3 less than the amount of data collected
                 if held['dup']: # 'dup' = d-pad up on xbox,
                     drive.right()
@@ -153,3 +204,4 @@ def main(counter):
 if __name__ == "__main__":
     collect = 0
     main(1)
+
