@@ -1,4 +1,5 @@
-#in training delete the first image since it takes time to connect
+#in training delete the first image since it takes time to connect]
+#ps -fA | grep python
 
 
 ######################################################################################################################################################
@@ -11,7 +12,7 @@ import datetime #for image file number
 import driver
 import threading
 from PIL import Image
-import socket, cv2, pickle,struct,imutils
+import socket, cv2, pickle,struct,imutils, os
 ######################################################################################################################################################
 #set up numbering for GPIO Pins
 GPIO.setmode(GPIO.BCM) #only needed for servo
@@ -59,8 +60,9 @@ def start(cap, run):
                     
                 # cv2.imshow('TRANSMITTING VIDEO',frame)
                 key = cv2.waitKey(1) & 0xFF
-                if key ==ord('q'):
+                if run == 0:
                     client_socket.close()
+                    break
     else:
         server_socket.close()
         client_socket.close()
@@ -90,7 +92,6 @@ colab_filename = "/content/pictures/"
 
 t = threading.Thread(target = start, args = (cap, run))
 t.daemon = True
-t.start()
 ######################################################################################################################################################
 # main code that handles xbox inputs, motor control, servo control, logging data
 def main(counter):
@@ -112,7 +113,7 @@ def main(counter):
             print("Connected")
             while joystick.connected:  # run while xbox is connected to RPi
                 servo.ChangeDutyCycle(0) 
-                time.sleep(0.05)  # try to stabalize servo wheel jitter
+                time.sleep(0.0)  # try to stabalize servo wheel jitter
                 
                 x, y = joystick['l'] # get x and y coordinates from left joystick on xbox
                 held = joystick.check_presses() # check for xbox controller presses 
@@ -123,8 +124,6 @@ def main(counter):
                     df.pop(0)
                     df.pop(0)
                     df = df[:-1]
-                    t.join()
-                    time.sleep(1)
                     return df #returns 3 less than the amount of data collected
                 if held['dup']: # 'dup' = d-pad up on xbox,
                     drive.right()
@@ -202,6 +201,7 @@ def main(counter):
 ######################################################################################################################################################
 
 if __name__ == "__main__":
+    t.start()
     collect = 0
     main(1)
 
