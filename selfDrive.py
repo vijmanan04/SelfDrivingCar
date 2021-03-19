@@ -11,6 +11,7 @@ from approxeng.input.selectbinder import ControllerResource # import library fro
 import driver
 import numpy as np
 from tensorflow.keras.models import load_model
+import sys, tty, termios
 ######################################################################################################################################################
 #set up numbering for GPIO Pins
 GPIO.setmode(GPIO.BCM) #only needed for servo
@@ -25,7 +26,16 @@ servo = GPIO.PWM(control, 50) # create PWM instance of servo that sends out sign
 servo.start(0) # start servo motor
 ######################################################################################################################################################
 
-
+#defines get char function #I did not write this function. It was modified from https://www.instructables.com/Controlling-a-Raspberry-Pi-RC-Car-With-a-Keyboard/
+def getch():
+    fd = sys.stdin.fileno() #sys.stdin gets input directly from terminal. fileno returns the file descriptor is present
+    old_settings = termios.tcgetattr(fd) #gets file tty attributes
+    try:
+        tty.setraw(sys.stdin.fileno()) #changes mode of file descriptor to raw
+        ch = sys.stdin.read(1) #reads character input
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings) #TCSADRAIN makes all changes occur after all the output is transmitted
+    return ch
 
 ######################################################################################################################################################
 #setup pin numbers for DC motor
@@ -44,6 +54,7 @@ def main(counter):
     w = 640
     drive.right()
     while 1:
+        stop = getch()
         ret, frame = cap.read() #read frame
         frame = np.asarrary(frame)
         frame = frame[y:y+h, x:x+w] #crop images
@@ -52,6 +63,9 @@ def main(counter):
         frame = np.array([frame])
         angle = float(model.predict(frame))
         servo.ChangeDutyCycle(angle)
+        if stop == "s":
+            GPIO.cleanup()
+            exit()
         time.sleep(0.5)
         
     
